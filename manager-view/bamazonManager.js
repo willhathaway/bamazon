@@ -96,11 +96,9 @@ function afterConnection() {
                 if (user.order) {
                     addToInventory();
                 } else {
-                    return;
+                    afterConnection();
                 }
             })
-
-            newOperation("view low inventory");
 
         })
     }
@@ -135,36 +133,41 @@ function afterConnection() {
                 }
             ]).then(function (user) {
 
-                let product;
+                if (user.inputID === "" || user.inputAmount === "") {
+                    console.log("please don't leave any fields empty");
+                    addToInventory();
+                } else {
 
-                for (let i = 0; i < res.length; i++) {
-                    if (res[i].item_id === user.inputID) {
-                        product = res[i];
-                    }
-                }
+                    let product;
 
-                let newStock = product.stock_quantity + user.inputAmount;
-                console.log(newStock);
-
-                connection.query(
-                    "UPDATE products SET ? WHERE ?",
-                    [{
-                            stock_quantity: newStock
-                        },
-                        {
-                            item_id: user.inputID
+                    for (let i = 0; i < res.length; i++) {
+                        if (res[i].item_id === user.inputID) {
+                            product = res[i];
                         }
-                    ],
-                    function (err) {
-                        if (err) throw err;
-                        // and alert the user of the total price and tell them that their order was fulfilled
-                        let price = product.price * user.inputAmount;
-                        console.log("order complete. " + user.inputAmount + " " + product.product_name + " ordered.");
                     }
-                );
 
-                newOperation("item added");
+                    let newStock = product.stock_quantity + user.inputAmount;
+                    console.log(newStock);
 
+                    connection.query(
+                        "UPDATE products SET ? WHERE ?",
+                        [{
+                                stock_quantity: newStock
+                            },
+                            {
+                                item_id: user.inputID
+                            }
+                        ],
+                        function (err) {
+                            if (err) throw err;
+                            // and alert the user of the total price and tell them that their order was fulfilled
+                            console.log("order complete. " + user.inputAmount + " " + product.product_name + " ordered.");
+                        }
+                    );
+
+                    newOperation("item added");
+
+                }
             })
         })
     }
@@ -180,7 +183,7 @@ function afterConnection() {
             {
                 type: "number",
                 name: "amount",
-                message: "enter amount"
+                message: "enter quantity"
             },
             {
                 type: "input",
@@ -196,33 +199,49 @@ function afterConnection() {
 
             // validate inputs
 
-            connection.query("INSERT INTO products SET ?,?,?,?",
-                [{
-                        product_name: user.name
-                    },
-                    {
-                        department_name: user.department
-                    },
-                    {
-                        price: user.price
-                    },
-                    {
-                        stock_quantity: user.amount
+            inputs = [user.name, user.amount, user.department, user.price];
+
+            if (inputs[0] === "" || inputs[1] === "" || inputs[2] === "" || inputs[3] === "") {
+                console.log("please fill in all fields")
+                addProduct();
+            } else if (user.name.split('').length > 25 || user.department.split('').length > 20) {
+                console.log("name of product or department too long");
+                addProduct();
+            } else if (user.amount < 0 || user.price < 0 || !Number.isInteger(user.amount) || !Number.isInteger(user.price)) {
+                console.log("enter a positive integer in the amount/price fields");
+                addProduct();
+            } else {
+
+                connection.query("INSERT INTO products SET ?,?,?,?",
+                    [{
+                            product_name: user.name
+                        },
+                        {
+                            department_name: user.department
+                        },
+                        {
+                            price: user.price
+                        },
+                        {
+                            stock_quantity: user.amount
+                        }
+                    ],
+                    function (err) {
+                        if (err) throw err;
                     }
-                ], function(err) {
-                    if (err) throw err;
-                }
-            )
+                )
 
-            newOperation("add product");
+                newOperation("add product");
 
+            }
         })
     }
+
+    // simple function to alert the user that the operation worked, and sends them back to the list of command options
 
     function newOperation(prev) {
         console.log(prev + " complete!")
         afterConnection();
     }
-
 
 }
