@@ -69,7 +69,9 @@ function afterConnection() {
                 console.log("stock: " + res[i].stock_quantity);
             }
             console.log(divider);
+            newOperation("view products");
         })
+
     }
 
     // viewLowInventory() lists all items where the stock_quantity is lower than 5
@@ -97,6 +99,9 @@ function afterConnection() {
                     return;
                 }
             })
+
+            newOperation("view low inventory");
+
         })
     }
 
@@ -158,6 +163,8 @@ function afterConnection() {
                     }
                 );
 
+                newOperation("item added");
+
             })
         })
     }
@@ -185,11 +192,11 @@ function afterConnection() {
                 name: "price",
                 message: "enter price"
             }
-        ]).then(function () {
+        ]).then(function (user) {
 
             // validate inputs
 
-            connection.query("INSERT INTO products (product_name, department_name, price, stock_quantity) VALUES (?,?,?,?)",
+            connection.query("INSERT INTO products SET ?,?,?,?",
                 [{
                         product_name: user.name
                     },
@@ -203,11 +210,18 @@ function afterConnection() {
                         stock_quantity: user.amount
                     }
                 ], function(err) {
-                    if (error) throw err;
+                    if (err) throw err;
                 }
             )
 
+            newOperation("add product");
+
         })
+    }
+
+    function newOperation(prev) {
+        console.log(prev + " complete!")
+        afterConnection();
     }
 
 
