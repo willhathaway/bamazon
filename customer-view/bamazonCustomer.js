@@ -94,7 +94,7 @@ function afterConnection() {
                         // and alert the user of the total price and tell them that their order was fulfilled
                         let price = product.price * user.inputAmount;
                         console.log("your order has been placed! " + user.inputAmount + " " + product.product_name + " for a total of $" + price);
-
+                        afterConnection();
                     }
                 );
             }

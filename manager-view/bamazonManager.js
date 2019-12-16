@@ -42,16 +42,12 @@ function afterConnection() {
         switch (user.command) {
             case "view products":
                 viewProducts();
-                break;
             case "view low inventory":
                 viewLowInventory();
-                break;
             case "add to inventory":
                 addToInventory();
-                break;
             case "add new product":
                 addProduct();
-                break;
         }
     });
 
